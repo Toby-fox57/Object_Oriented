@@ -101,13 +101,18 @@ public:
 	}
 	int position_in_array(int i, int j) const
 	{
-		if ((i >= 0 && i <= rows) && (j >= 0 && j <= columns)) {
+		if ((i > 0 && i <= rows) && (j > 0 && j <= columns)) {
 			return (j - 1) + (i - 1) * columns;
-		}
-		else {
+		} else {
 			std::cout << "Error: out of range" << std::endl;
 			exit(1);
 		}
+	}
+
+	// Set values of the matrix
+	double& operator()(int m, int n)
+	{
+		return matrix_data[position_in_array(m, n)];
 	}
 
 	// Delete row i
@@ -124,10 +129,23 @@ public:
 		return *this;
 	}
 
-	// Set values of the matrix
-	double& operator()(int m, int n) 
+	// Delete column j
+	matrix& delete_column(int j_column)
 	{
-		return matrix_data[position_in_array(m, n)];
+		int begin_j_column = position_in_array(1, j_column);
+		int i = 1;
+
+		for (int j = begin_j_column + 1; j <= position_in_array(rows, columns); j++) {
+			if ((j + 1 - j_column) % columns == 0) {
+				i++;
+			} else {
+				matrix_data[j - i] = matrix_data[j];
+			}
+		}
+
+		columns--;
+
+		return *this;
 	}
 
 	// Overload + operator for addition
@@ -144,8 +162,7 @@ public:
 			}
 
 			return temp;
-		}
-		else {
+		} else {
 			std::cout << "Error: m and n must be the same.";
 			exit(1);
 		}
@@ -165,8 +182,7 @@ public:
 			}
 
 			return temp;
-		}
-		else {
+		} else {
 			std::cout << "Error: m and n must be the same.";
 			exit(1);
 		}
@@ -190,8 +206,7 @@ public:
 			}
 
 			return temp;
-		}
-		else {
+		} else {
 			std::cout << "Error: m and n must be the same.";
 			exit(1);
 		}
@@ -240,36 +255,40 @@ std::ostream& operator<<(std::ostream& os, const matrix& mat)
 // Function to overload >> operator for a matrix
 std::istream& operator>>(std::istream& is, matrix& mat)
 {
-	bool next_line = true;
-	int rows = 0; int columns = 0;
+	std::cout << "Please enter the number of rows the matrix has: ";
+	is >> mat.rows;
+	std::cout << "Please enter the number of columns the matrix has: ";
+	is >> mat.columns;
 
-	while (next_line == true) {
-		rows++;
-		double temp_num;
-		std::cout << "Please enter the first row of matrix with spaces inbetween each element and / at the end of the input :";
+	mat.matrix_data = new double[mat.rows * mat.columns];
 
-		while (is >> temp_num) {
-			columns++;
+	//std::cout << mat.rows << " " << mat.columns << std::endl;
+
+	for (int i = 1; i <= mat.rows; i ++) {
+		std::cout << "Please enter the next row of matrix with spaces between each element and / at the end of the input: ";
+
+		int spaces = 0; char characters;
+		while (is.get(characters)) {
+			if (characters == ' ') {
+				spaces++;
+			}
 		}
 
-		double* temp_column = nullptr;
-		temp_column = new double[columns];
-
-		int counter = 0;
-		while (is >> temp_num) {
-			temp_column[counter] = temp_num;
-			counter++;
+		if (spaces == mat.columns) {
+			double temp_num; int j = 0;
+			while (is >> temp_num) {
+				j++;
+				mat.matrix_data[mat.position_in_array(i, j)] = temp_num;
+			}
+		} else if (spaces > mat.columns) {
+			std::cout << "Error: Not enough numbers inputted";
+			i -= 1;
+		} else {
+			std::cout << "Error: Too many numbers inputted;";
+			i -= 1;
 		}
 
-		next_line = false;
-	}
-
-	rows = 1; columns = 2;
-	mat.matrix_data = new double[1 * 2];
-	for (int i{1}; i < 1; i++) {
-		for (int j{1}; j < 2; j++) {
-			mat(i, j) = 0;
-		}
+		is.clear(); is.ignore();
 	}
 
 	return is;
@@ -278,6 +297,9 @@ std::istream& operator>>(std::istream& is, matrix& mat)
 int main() 
 {
 	// -- Part 1: Construction, deep copy and move --
+	matrix a;
+	std::cin >> a;
+	std::cout << a << std::endl;
 
 	// Default constructor
 	matrix default_matrix;
@@ -371,13 +393,26 @@ int main()
 	std::cout << "Multiplication:" << std::endl;
 	std::cout << multiplcation_matrix;
 
+	// -- Part 3: Deleting from matrix --
+	matrix matrix_3_row{ 3, 3 };
+	matrix_3_row(1, 1) = 1; matrix_3_row(1, 2) = 2;	matrix_3_row(1, 3) = 3; matrix_3_row(2, 1) = 4; matrix_3_row(2, 2) = 5;	matrix_3_row(2, 3) = 6;
+	matrix_3_row(3, 1) = 7; matrix_3_row(3, 2) = 8;	matrix_3_row(3, 3) = 9;
+
+	matrix matrix_3_column = matrix_3_row;
+
 	// Delete row i
-	matrix matrix_3{ 3, 3 };
-	matrix_3(1, 1) = 1; matrix_3(1, 2) = 2;	matrix_3(1, 3) = 3; matrix_3(2, 1) = 4; matrix_3(2, 2) = 5;	matrix_3(2, 3) = 6; matrix_3(3, 1) = 7; matrix_3(3, 2) = 8;	matrix_3(3, 3) = 9;
-	std::cout << matrix_3;
-	matrix_3.delete_row(3);
-	matrix_3.delete_row(1);
-	std::cout << matrix_3;
+	std::cout << matrix_3_row;
+	std::cout << "Deleting rows 1 and 3:" << std::endl;
+	matrix_3_row.delete_row(3);
+	matrix_3_row.delete_row(1);
+	std::cout << matrix_3_row;
+
+	// Delete row j
+	std::cout << matrix_3_column;
+	std::cout << "Deleting columns 1 and 3:" << std::endl;
+	matrix_3_column.delete_column(3);
+	matrix_3_column.delete_column(1);
+	std::cout << matrix_3_column;
 
 	// Determinant
 
