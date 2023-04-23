@@ -131,7 +131,7 @@ matrix& matrix::operator=(const matrix& mat)
 
 	delete[] matrix_data;
 	matrix_data = nullptr;
-	rows = 0; columns = 0; // Why??
+	rows = 0; columns = 0;
 
 	rows = mat.get_rows(); columns = mat.get_columns();
 	if (rows >= 0 && columns >= 0) {
@@ -182,7 +182,6 @@ matrix matrix::operator+(const matrix& mat) const
 	else {
 		std::cout << "Error: m and n must be the same." << std::endl;
 		matrix temp{ 0, 0 };
-		temp.matrix_data = new double[0];
 
 		return temp;
 	}
@@ -205,7 +204,6 @@ matrix matrix::operator-(const matrix& mat) const
 	else {
 		std::cout << "Error: m and n must be the same." << std::endl;
 		matrix temp{ 0, 0 };
-		temp.matrix_data = new double[0];
 
 		return temp;
 	}
@@ -232,7 +230,6 @@ matrix matrix::operator*(const matrix& mat) const
 	else {
 		std::cout << "Error: n of the first matrix must equal m of the second matrix." << std::endl;
 		matrix temp{ 0, 0 };
-		temp.matrix_data = new double[0];
 
 		return temp;
 	}
@@ -315,34 +312,54 @@ std::ostream& operator<<(std::ostream& os, const matrix& mat)
 // Function to overload >> operator for a matrix
 std::istream& operator>>(std::istream& is, matrix& mat)
 {
-	std::cout << "Please enter the number of rows the matrix has: ";
-	is >> mat.rows;
-	std::cout << "Please enter the number of columns the matrix has: ";
-	is >> mat.columns;
+	int inputted_rows; int inputted_columns;
+	while (true) {
+		std::cout << "Please enter the number of rows the matrix has: ";
+		if (is >> inputted_rows && inputted_rows > 0)  {
+			mat.rows = inputted_rows;
+			break;
+		} else {
+			std::cout << "Error: Please input a positive integar";
+			is.clear(); is.ignore();
+		}
+	}
+	
+	while (true) {
+		std::cout << "Please enter the number of columns the matrix has: ";
+		if (is >> inputted_columns && inputted_columns > 0) {
+			mat.columns = inputted_columns;
+			break;
+		}
+		else {
+			std::cout << "Error: Please input a positive integar" << std::endl;
+			is.clear(); is.ignore();
+		}
+	}
 
 	mat.matrix_data = new double[mat.rows * mat.columns];
 
 	for (int i{ 1 }; i <= mat.rows; i++) {
 		std::cout << "Please enter the next row of matrix with spaces between each element and / at the end of the input: ";
 
-		bool correct_input = false;
-		while (correct_input == false) {
+		while (true) {
 			double temp_num; int j = 0;
 			while (is >> temp_num) {
-				j++; mat.matrix_data[mat.position_in_array(i, j)] = temp_num;
-
+				j++; 
+				if (j <= mat.columns) {
+					mat.matrix_data[mat.position_in_array(i, j)] = temp_num;
+				} else {
+					break; 
+				}
 			}
-
 			is.clear(); is.ignore();
+
 			if (j < mat.columns) {
 				std::cout << "Error: Not enough numbers inputted." << std::endl;
 				std::cout << "Please re-enter that line: "; i = i;
-			}
-			else if (j > mat.columns) {
+			} else if (j > mat.columns) {
 				std::cout << "Error: Too many numbers inputted." << std::endl;
 				std::cout << "Please re-enter that line: ";  i = i;
-			}
-			else {
+			} else {
 				break;
 			}
 		}
@@ -367,7 +384,6 @@ int main()
 	// Set values for the matrices
 	matrix_a(1, 1) = 1; matrix_a(1, 2) = 2; matrix_a(1, 3) = 3; matrix_a(2, 1) = 9;	matrix_a(2, 2) = 8;
 	matrix_a(2, 3) = 7, matrix_a(3, 1) = 4; matrix_a(3, 2) = 2; matrix_a(3, 3) = 6;
-	//std::cin >> matrix_a;
 
 	matrix_b(1, 1) = 5; matrix_b(1, 2) = 5; matrix_b(1, 3) = 4; matrix_b(2, 1) = 1;	matrix_b(2, 2) = 2;
 	matrix_b(2, 3) = 3, matrix_b(3, 1) = 6; matrix_b(3, 2) = 9; matrix_b(3, 3) = 8;
@@ -411,10 +427,10 @@ int main()
 	matrix move_by_assignment_matrix = std::move(matrix_a);
 
 	std::cout << "Move by assignment -" << std::endl;
-	std::cout << "Dimensions of the parameterised matrix that has been moved (expect 0, 0):" << std::endl;
-	std::cout << "M, N: " << matrix_a.get_rows() << " , " << matrix_a.get_columns() << std::endl;
-	std::cout << "Dimensions of the move by assignment matrix (expect 3, 3):" << std::endl;
-	std::cout << "M, N: " << move_by_assignment_matrix.get_rows() << " , " << move_by_assignment_matrix.get_columns() << std::endl;
+	std::cout << "The moved matrix: " << std::endl;
+	std::cout << move_by_assignment_matrix << std::endl;
+	std::cout << "Matrix A which has had its content moved: " << std::endl;
+	std::cout << matrix_a << std::endl;
 	std::cout << "\n";
 
 	matrix_a = std::move(move_by_assignment_matrix);
@@ -423,10 +439,10 @@ int main()
 	matrix move_constructor_matrix{ std::move(matrix_a) };
 
 	std::cout << "Move by constructor -" << std::endl;
-	std::cout << "Dimensions of the parameterised matrix that has been moved (expect 0, 0):" << std::endl;
-	std::cout << "M, N: " << matrix_a.get_rows() << " , " << matrix_a.get_columns() << std::endl;
-	std::cout << "Dimensions of the move by assignment matrix (expect 2, 2):" << std::endl;
-	std::cout << "M, N: " << move_constructor_matrix.get_rows() << " , " << move_constructor_matrix.get_columns() << std::endl;
+	std::cout << "The moved matrix: " << std::endl;
+	std::cout << move_constructor_matrix << std::endl;
+	std::cout << "Matrix A which has had its content moved: " << std::endl;
+	std::cout << matrix_a << std::endl;
 	std::cout << "\n";
 
 	matrix_a = copy_constructor_martix;
@@ -436,17 +452,17 @@ int main()
 	std::cout << "-- Part 2: matrix operations --" << std::endl;
 
 	// Addition
-	std::cout << "Addition:" << std::endl;
+	std::cout << "Addition -" << std::endl;
 	std::cout << "Matrix A + Matrix B = " << std::endl;
 	std::cout << matrix_a + matrix_b << std::endl;
 
 	// Subtraction
-	std::cout << "Subtraction:" << std::endl;
+	std::cout << "Subtraction -" << std::endl;
 	std::cout << "Matrix A - Matrix B = " << std::endl;
 	std::cout << matrix_a - matrix_b << std::endl;
 
 	// Muliplitcation
-	std::cout << "Multiplication:" << std::endl;
+	std::cout << "Multiplication -" << std::endl;
 	std::cout << "Matrix A * Matrix B = " << std::endl;
 	std::cout << matrix_a * matrix_b << std::endl;
 	std::cout << "Matrix C * Matrix B = " << std::endl;
@@ -455,9 +471,17 @@ int main()
 	std::cout << matrix_b * matrix_c << std::endl;
 
 	// Determinant
-	std::cout << "Determinant :" << std::endl;
+	std::cout << "Determinant -" << std::endl;
 	std::cout << "det(A) = " << matrix_a.calculate_determinant() << std::endl;
 	std::cout << "det(B) = " << matrix_b.calculate_determinant() << std::endl;
+	std::cout << "\n" << std::endl;
+
+	// Overloading >> operator
+	matrix input_matrix{};
+	std::cout << "Input a matrix -" << std::endl;
+	std::cin >> input_matrix;
+	std::cout << "The inputted matrix: " << std::endl;
+	std::cout << input_matrix << std::endl;
 
 	return 0;
 }
