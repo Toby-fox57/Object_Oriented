@@ -8,31 +8,60 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include "Quantum_circuit_class.h"
-#include "Quantum_circuit_class.cpp"
+#include <map>
+
+#include "Complex_class.h"
+#include "Complex_class.cpp"
+#include "Matrix_class.h"
+#include "Matrix_class.cpp"
+#include "Qbit_class.h"
+#include "Qbit_class.cpp"
+#include "Components_class.h"
+#include "Components_class.cpp"
+#include "Circuit_class.h"
+#include "Circuit_class.cpp"
 
 int main()
 {
+    //-- Define component library --
+
+    std::shared_ptr<component> hadamard_gate = std::make_shared<hadamard>();
+    std::shared_ptr<component> identity_gate = std::make_shared<identity>();
+    std::shared_ptr<component> phase_gate = std::make_shared<phase>();
+    std::shared_ptr<component> controlled_hadamard_gate = std::make_shared<controlled_hadamard>();
+
+    std::map<std::string, std::shared_ptr<component>> component_library;
+
+    component_library["identity"] = (identity_gate);
+    component_library["hadamard"] = (hadamard_gate);
+    component_library["phase"] = (phase_gate);
+    component_library["controlled hadamard"] = (controlled_hadamard_gate);
+
+    //-- Setup_circuit --
+
     circuit circuit_a;
 
-    component* hadamard_gate = new hadamard;
-    component* identity_gate = new identity;
+    std::vector<std::shared_ptr<component>> components_parrellel;
+    std::vector<std::shared_ptr<component>> components_parrellel_2;
+    std::vector<std::shared_ptr<component>> components_parrellel_3;
 
-    std::vector<component*> component_library = { identity_gate, hadamard_gate };
+    components_parrellel.push_back(component_library["identity"]);
+    components_parrellel.push_back(component_library["phase"]);
 
-    qbit* qbit_1 = new qbit{ 1 };
-    qbit* qbits_0 = new qbit{ 0 };
+    components_parrellel_2.push_back(component_library["controlled hadamard"]);
 
-    std::vector<component*> circuit_components = { component_library[1], component_library[0] };
-    std::vector<qbit*> qbits = { qbit_1, qbits_0 };
-   
-    circuit_a.add_qbit(qbits[0]);
-    circuit_a.add_qbit(qbits[1]);
-    circuit_a.add_components(circuit_components);
+    components_parrellel_3.push_back(component_library["identity"]);
+    components_parrellel_3.push_back(component_library["phase"]);
+
+    circuit_a.add_qbit(0);
+    circuit_a.add_qbit(1);
+
+    circuit_a.add_components(components_parrellel);
+    circuit_a.add_components(components_parrellel_2);
+    circuit_a.add_components(components_parrellel_3);
+
     circuit_a.run_circuit();
-   
-    circuit_components.clear();
-    qbits.clear();
+    std::cout << circuit_a << std::endl;
 
     return 0;
 };
